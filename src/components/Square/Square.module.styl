@@ -8,7 +8,12 @@
   position relative
 
   &.block
-    background-color black
+    input
+      background-color black
+
+      &:focus, &:active
+        background-color #444
+        color #444
 
   input
     width 100%
@@ -21,10 +26,15 @@
     font-family: 'Courier New', Courier, monospace
     font-size: 1.8em;
     font-weight: 500;
+    caret-color: transparent;
+
+    &::selection
+      background-color transparent
 
     &:focus, &:active
       border none
       outline none
+      background-color #EEE
 
   .number
     position absolute

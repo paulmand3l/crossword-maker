@@ -1,44 +1,46 @@
-import React from "react";
+import React, {
+  ChangeEventHandler,
+  FocusEventHandler,
+  KeyboardEventHandler,
+} from "react";
 import clsx from "clsx";
 import styles from "./Square.module.styl";
 
 interface SquareProps {
   letter?: string;
   number?: number | null;
-  onChange?: (newValue: string) => unknown;
+  onKeyDown?: KeyboardEventHandler<HTMLInputElement>
+  onUnblock?: () => unknown;
 }
 
 const Square = (props: SquareProps) => {
-  const { letter, number, onChange, ...rest } = props;
+  const { letter, number, onKeyDown, onUnblock } = props;
 
   const isBlock = letter === "-";
 
   const handleClick = () => {
     if (isBlock) {
-      onChange?.("");
+      onUnblock?.();
     }
   };
 
-  const handleChange = (e: React.FormEvent<HTMLInputElement>) => {
-    const newValue = e.currentTarget.value;
-    onChange?.(newValue);
+  const handleKeyDown: KeyboardEventHandler<HTMLInputElement> = (e) => {
+    onKeyDown?.(e);
   };
 
   return (
     <div
       className={clsx(styles.Square, isBlock && styles.block)}
       onClick={handleClick}
-      {...rest}
     >
-      {isBlock ? null : (
-        <input
-          type="text"
-          value={letter ?? ""}
-          minLength={0}
-          maxLength={1}
-          onChange={handleChange}
-        />
-      )}
+      <input
+        className="square-input"
+        type="text"
+        value={letter ?? ""}
+        readOnly
+        onKeyDown={handleKeyDown}
+      />
+
       {number ? <div className={styles.number}>{number}</div> : null}
     </div>
   );
