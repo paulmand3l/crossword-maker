@@ -1,12 +1,15 @@
 import { useEffect, useState } from "react";
 import { isBlock, mod } from "../utils";
 import { useControls } from "leva";
+import { Letters } from "./types";
+
+
 
 export const useLetterController = (size: number) => {
   const { mirror, rotate } = useControls({ mirror: false, rotate: false });
 
-  const [letters, setLetters] = useState<string[]>(
-    new Array(size * size).fill("")
+  const [letters, setLetters] = useState<Letters>(
+    new Array(size * size).fill("_")
   );
   const [cursor, setCursor] = useState(Math.floor(size * size / 2));
 
@@ -29,12 +32,12 @@ export const useLetterController = (size: number) => {
 
   const handleKeyDown = (e: KeyboardEvent) => {
     if (e.key === "Backspace") {
-      letters.splice(cursor, 1, "");
+      letters.splice(cursor, 1, "_");
       setLetters([...letters]);
     }
 
     if (e.code === "Minus" || e.code === 'Escape') {
-      const letter = letters[cursor] === "-" ? "" : "-";
+      const letter = letters[cursor] === "-" ? "_" : "-";
       letters.splice(cursor, 1, letter);
       if (e.ctrlKey || rotate) {
         letters.splice(letters.length - cursor - 1, 1, letter);
@@ -82,24 +85,8 @@ export const useLetterController = (size: number) => {
     setCursor(i);
   };
 
-  let count = 1;
-  const numbers = letters.map((letter, i) => {
-    if (isBlock(letter)) return null;
-
-    if (
-      i < size ||
-      i % size === 0 ||
-      isBlock(letters[i - 1]) ||
-      isBlock(letters[i - size])
-    ) {
-      return count++;
-    }
-    return null;
-  });
-
   return {
     letters,
-    numbers,
     cursor,
     handleClick,
   };
