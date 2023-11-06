@@ -9,12 +9,12 @@ type Numbers = (number | null)[];
 interface GridProps {
   letters: Letters;
   numbers: Numbers;
-  onKeyDown?: (i: number, e: React.KeyboardEvent<HTMLInputElement>) => unknown;
-  onUnblock?: (i: number) => unknown;
+  cursor: number;
+  onClick?: (i: number) => unknown;
 }
 
 const Grid = (props: GridProps) => {
-  const { letters, numbers, onKeyDown, onUnblock } = props;
+  const { letters, numbers, cursor, onClick } = props;
 
   if (!isSquare(letters.length)) {
     throw new Error("Letters length must be a perfect square");
@@ -43,10 +43,10 @@ const Grid = (props: GridProps) => {
             return (
               <Square
                 key={index}
+                active={cursor === index}
                 letter={letter}
                 number={numbers[index]}
-                onKeyDown={(e) => onKeyDown?.(index, e)}
-                onUnblock={() => onUnblock?.(index)}
+                onClick={() => onClick?.(index)}
               />
             );
           })}

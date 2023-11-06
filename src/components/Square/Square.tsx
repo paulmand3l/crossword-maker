@@ -1,46 +1,24 @@
-import React, {
-  ChangeEventHandler,
-  FocusEventHandler,
-  KeyboardEventHandler,
-} from "react";
+import { MouseEventHandler } from "react";
 import clsx from "clsx";
 import styles from "./Square.module.styl";
+import { isBlock } from "../../utils";
 
 interface SquareProps {
   letter?: string;
   number?: number | null;
-  onKeyDown?: KeyboardEventHandler<HTMLInputElement>
-  onUnblock?: () => unknown;
+  active?: boolean;
+  onClick?: MouseEventHandler;
 }
 
 const Square = (props: SquareProps) => {
-  const { letter, number, onKeyDown, onUnblock } = props;
-
-  const isBlock = letter === "-";
-
-  const handleClick = () => {
-    if (isBlock) {
-      onUnblock?.();
-    }
-  };
-
-  const handleKeyDown: KeyboardEventHandler<HTMLInputElement> = (e) => {
-    onKeyDown?.(e);
-  };
+  const { letter, number, active, onClick } = props;
 
   return (
     <div
-      className={clsx(styles.Square, isBlock && styles.block)}
-      onClick={handleClick}
+      className={clsx(styles.Square, isBlock(letter) && styles.block, active && styles.active)}
+      onClick={onClick}
     >
-      <input
-        className="square-input"
-        type="text"
-        value={letter ?? ""}
-        readOnly
-        onKeyDown={handleKeyDown}
-      />
-
+      {isBlock(letter) ? null : <div className={styles.letter}>{letter ?? ""}</div>}
       {number ? <div className={styles.number}>{number}</div> : null}
     </div>
   );

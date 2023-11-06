@@ -7,34 +7,25 @@
   color black
   position relative
 
+  &.active
+    background-color: #EEE
+
   &.block
-    input
-      background-color black
+    background-color: black
+    color transparent
 
-      &:focus, &:active
-        background-color #444
-        color #444
+    &.active
+      background-color #444
 
-  input
+  .letter
     width 100%
     height 100%
-    text-align: center
-    border none
-    outline none
-    background-color: white
-    color black
+    display: flex
+    align-items: center
+    justify-content: center
     font-family: 'Courier New', Courier, monospace
     font-size: 1.8em;
     font-weight: 500;
-    caret-color: transparent;
-
-    &::selection
-      background-color transparent
-
-    &:focus, &:active
-      border none
-      outline none
-      background-color #EEE
 
   .number
     position absolute
