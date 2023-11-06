@@ -7,7 +7,7 @@ const App = () => {
   const size = 15;
 
   const { letters, cursor, handleClick } = useLetterController(size);
-  const { numbers, across, down } = getWords(letters);
+  const { numbers, flags, across, down } = getWords(letters);
 
   console.log(across, down);
 
@@ -16,6 +16,7 @@ const App = () => {
       <Grid
         letters={letters}
         numbers={numbers}
+        flags={flags}
         cursor={cursor}
         onClick={handleClick}
       />

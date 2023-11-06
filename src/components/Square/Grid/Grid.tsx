@@ -1,20 +1,19 @@
 import styles from "./Grid.module.styl";
 import Square from "..";
+import { Flags, Letters, Numbers } from "../../../App/types";
 
 const isSquare = (n: number) => n > 0 && Math.sqrt(n) % 1 === 0;
-
-type Letters = string[];
-type Numbers = (number | null)[];
 
 interface GridProps {
   letters: Letters;
   numbers: Numbers;
+  flags: Flags;
   cursor: number;
   onClick?: (i: number) => unknown;
 }
 
 const Grid = (props: GridProps) => {
-  const { letters, numbers, cursor, onClick } = props;
+  const { letters, numbers, flags, cursor, onClick } = props;
 
   if (!isSquare(letters.length)) {
     throw new Error("Letters length must be a perfect square");
@@ -46,6 +45,7 @@ const Grid = (props: GridProps) => {
                 active={cursor === index}
                 letter={letter}
                 number={numbers[index]}
+                flags={flags[index]}
                 onClick={() => onClick?.(index)}
               />
             );

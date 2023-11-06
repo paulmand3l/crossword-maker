@@ -55,6 +55,7 @@ const transpose = (i: number, size: number) => {
 export const getWords = (letters: Letters) => {
   const size = getSquareSize(letters);
   const numbers = getWordNumbers(letters);
+  const flags = [...letters].map(() => new Set<string>());
 
   const across = _getWords(letters).map<Word>(word => {
     const number = numbers[word.index]
@@ -62,6 +63,14 @@ export const getWords = (letters: Letters) => {
     if (!number) {
       console.warn('across', word, word.word.length);
       // throw new Error(`Un-numbered word ${JSON.stringify(word)}`);
+    }
+
+    if (word.word.length < 2) {
+      console.warn('short word', word);
+      for (let i = 0; i < word.word.length; i++) {
+        console.log(word.index + i, word.word.length)
+        flags[word.index + i].add('short');
+      }
     }
 
     return {
@@ -82,6 +91,12 @@ export const getWords = (letters: Letters) => {
       // throw new Error(`Un-numbered word ${JSON.stringify(word)}`);
     }
 
+    if (word.word.length < 2) {
+      for (let i = 0; i < word.word.length; i++) {
+        flags[word.index + i].add('short');
+      }
+    }
+
     return {
       ...word,
       number: number ?? -1,
@@ -91,6 +106,7 @@ export const getWords = (letters: Letters) => {
 
   return {
     numbers,
+    flags,
     across: orderBy(across, 'number'),
     down: orderBy(down, 'number')
   };

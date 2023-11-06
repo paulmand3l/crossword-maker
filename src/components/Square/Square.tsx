@@ -6,19 +6,21 @@ import { isBlank, isBlock } from "../../utils";
 interface SquareProps {
   letter: string;
   number?: number | null;
+  flags: Set<string>;
   active?: boolean;
   onClick?: MouseEventHandler;
 }
 
 const Square = (props: SquareProps) => {
-  const { letter, number, active = false, onClick } = props;
+  const { letter, number, flags, active = false, onClick } = props;
 
   return (
     <div
       className={clsx(
         styles.Square,
         isBlock(letter) && styles.block,
-        active && styles.active
+        active && styles.active,
+        Array.from(flags).map(f => styles[f]),
       )}
       onClick={onClick}
     >

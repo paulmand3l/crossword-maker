@@ -1,4 +1,6 @@
 export type Letters = string[];
+export type Numbers = (number | null)[];
+export type Flags = Set<string>[];
 
 export type UnorientedWord = {
   index: number;
