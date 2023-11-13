@@ -13,3 +13,21 @@ export type Word = {
   number: number;
   direction: 'across' | 'down';
 };
+
+export enum Square {
+  BLOCK = '-',
+  BLANK = '_',
+}
+
+export type Words = {
+  across: Word[];
+  down: Word[];
+  numbers: Numbers;
+  flags: Flags;
+};
+
+export type Rectangle = {
+  index: number;
+  width: number;
+  height: number;
+};

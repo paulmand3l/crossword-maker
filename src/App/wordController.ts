@@ -1,8 +1,8 @@
-import { orderBy } from 'lodash';
-import { getSquareSize, isBlock } from "../utils";
-import { Letters, UnorientedWord, Word } from "./types";
+import { join, orderBy } from "lodash";
+import { addAll, getSquareSize, gridify, isBlock, transpose, transposeArray } from "../utils";
+import { Letters, Numbers, Rectangle, UnorientedWord, Word } from "./types";
 
-const getWordNumbers = (letters: Letters) => {
+export const getWordNumbers = (letters: Letters): Numbers => {
   const size = getSquareSize(letters);
 
   let count = 1;
@@ -31,10 +31,10 @@ const _getWords = (letters: Letters) => {
       return words;
     }
 
-    if (isBlock(letters[index-1]) || (index % size === 0)) {
+    if (isBlock(letters[index - 1]) || index % size === 0) {
       words.push({
         index,
-        word: '',
+        word: "",
       });
     }
 
@@ -44,70 +44,149 @@ const _getWords = (letters: Letters) => {
   }, []);
 
   return words;
-}
+};
 
-const transpose = (i: number, size: number) => {
-  const row = Math.floor(i / size);
-  const col = i % size;
-  return row + col * size;
-}
-
-export const getWords = (letters: Letters) => {
+export const getWords = (letters: Letters, numbers: Numbers) => {
   const size = getSquareSize(letters);
-  const numbers = getWordNumbers(letters);
-  const flags = [...letters].map(() => new Set<string>());
 
-  const across = _getWords(letters).map<Word>(word => {
-    const number = numbers[word.index]
+  const across = _getWords(letters).map<Word>((word) => {
+    const number = numbers[word.index];
 
     if (!number) {
-      console.warn('across', word, word.word.length);
-      // throw new Error(`Un-numbered word ${JSON.stringify(word)}`);
-    }
-
-    if (word.word.length < 2) {
-      console.warn('short word', word);
-      for (let i = 0; i < word.word.length; i++) {
-        console.log(word.index + i, word.word.length)
-        flags[word.index + i].add('short');
-      }
+      console.warn("across", word, word.word.length);
+      throw new Error(`Un-numbered word ${JSON.stringify(word)}`);
     }
 
     return {
       ...word,
       number: number ?? -1,
-      direction: 'across',
+      direction: "across",
+    };
+  });
+
+  const transposedLetters = transposeArray(letters, size);
+
+  const down = _getWords(transposedLetters).map<Word>((word) => {
+    word.index = transpose(word.index, size);
+    const number = numbers[word.index];
+
+    if (!number) {
+      console.warn("down", word, word.word.length);
+      throw new Error(`Un-numbered word ${JSON.stringify(word)}`);
+    }
+
+    return {
+      ...word,
+      number: number ?? -1,
+      direction: "down",
+    };
+  });
+
+  const flags = getFlags(letters, across, down);
+
+  return {
+    flags,
+    across: orderBy(across, "number"),
+    down: orderBy(down, "number"),
+  };
+};
+
+type FlagsOptions = {
+  minWordLength?: number;
+  maxOverlap?: number;
+  maxRectSizes?: number[][];
+};
+
+const getRectFlags = (letters: Letters, options: FlagsOptions = {}) => {
+  const { maxRectSizes = [[7, 2], [5, 4], [4, 4]] } = options;
+
+  const rectSizes = maxRectSizes.reduce((sizes, rect) => {
+    const x = Math.min(...rect), y = Math.max(...rect);
+    sizes[x] = sizes[x] ? Math.max(sizes[x], y) : y;
+    return sizes;
+  }, []);
+
+  const oversizedRectangles: Rectangle[] = [];
+  const letterGrid = gridify(letters);
+  letterGrid.forEach((row, i) => {
+    row.forEach((_l, j) => {
+      rectSizes.forEach((d1, d2) => {
+        if (!d1 || d1 >= row.length || d2 >= row.length) return;
+
+        const variants = d1 === d2 ? [[d1 + 1, d2], [d1, d2 + 1]] : [
+          [d1 + 1, d2], [d1, d2 + 1],
+          [d2 + 1, d1], [d2, d1 + 1]
+        ];
+
+        variants.forEach(([w, h]) => {
+          for (let x = 0; x < w; x++) {
+            for (let y = 0; y < h; y++) {
+              if (isBlock(letterGrid[i + y]?.[j + x])) return;
+            }
+          }
+
+          oversizedRectangles.push({
+            index: i * row.length + j,
+            width: w,
+            height: h,
+          });
+        });
+      })
+    });
+  });
+
+  const flags = [...letters].map(() => new Set<string>());
+
+  oversizedRectangles.forEach(({ index, width, height }) => {
+    console.log(index, width, height);
+    for (let i = 0; i < height; i++) {
+      for (let j = 0; j < width; j++) {
+        flags[index + i * letterGrid.length + j].add('rect');
+      }
     }
   });
 
-  const transposedLetters = letters.map((_l, i) => letters[transpose(i, size)]);
+  return flags;
+}
 
-  const down = _getWords(transposedLetters).map<Word>(word => {
-    word.index = transpose(word.index, size);
-    const number = numbers[word.index]
+const getFlags = (
+  letters: Letters,
+  across: Word[],
+  down: Word[],
+  options: FlagsOptions = {}
+) => {
+  const { minWordLength = 2 } = options;
+  const size = getSquareSize(letters);
+  const flags = [...letters].map(() => new Set<string>());
 
-    if (!number) {
-      console.warn('down', word, word.word.length);
-      // throw new Error(`Un-numbered word ${JSON.stringify(word)}`);
-    }
+  getRectFlags(letters, options).forEach((newFlags, i) => {
+    addAll(flags[i], newFlags);
+  });
 
-    if (word.word.length < 2) {
+  across.forEach((word) => {
+    if (word.word.length <= minWordLength) {
+      console.warn("short word", word);
       for (let i = 0; i < word.word.length; i++) {
-        flags[word.index + i].add('short');
+        console.log(word.index + i, word.word.length);
+        flags[word.index + i].add("short");
       }
     }
+  });
 
-    return {
-      ...word,
-      number: number ?? -1,
-      direction: 'down',
+  const transposedFlags = transposeArray(flags, size);
+
+  down.forEach((word) => {
+    word.index = transpose(word.index, size);
+    if (word.word.length < 3) {
+      console.warn("short word", word);
+      for (let i = 0; i < word.word.length; i++) {
+        console.log(word.index + i, word.word.length);
+        transposedFlags[word.index + i].add("short");
+      }
     }
-  })
+  });
 
-  return {
-    numbers,
-    flags,
-    across: orderBy(across, 'number'),
-    down: orderBy(down, 'number')
-  };
-}
+  console.log(flags);
+
+  return transposeArray(transposedFlags, size);
+};

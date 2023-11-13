@@ -1,48 +1,29 @@
 import { useEffect, useState } from "react";
-import { isBlock, mod } from "../utils";
 import { useControls } from "leva";
-import { Letters } from "./types";
+import { Letters, Square } from "./types";
+import { isBlock } from "../utils";
 
 
-
-export const useLetterController = (size: number) => {
-  const { mirror, rotate } = useControls({ mirror: false, rotate: false });
+export const useLetterController = (size: number, cursor: number) => {
+  const { mode } = useControls({ mode: { value: '------', options: ['------', 'mirror', 'rotate'] }});
 
   const [letters, setLetters] = useState<Letters>(
-    new Array(size * size).fill("_")
+    new Array(size * size).fill(Square.BLANK)
   );
-  const [cursor, setCursor] = useState(Math.floor(size * size / 2));
-
-  const moveCursorUp = () => setCursor(mod(cursor - size, size*size));
-  const moveCursorDown = () => setCursor(mod(cursor + size, size*size));
-  const moveCursorRight = () => {
-    if (cursor % size === size - 1) {
-      setCursor(cursor - size + 1);
-    } else {
-      setCursor(cursor + 1);
-    }
-  };
-  const moveCursorLeft = () => {
-    if (cursor % size === 0) {
-      setCursor(cursor + size - 1);
-    } else {
-      setCursor(cursor - 1);
-    }
-  }
 
   const handleKeyDown = (e: KeyboardEvent) => {
     if (e.key === "Backspace") {
-      letters.splice(cursor, 1, "_");
+      letters.splice(cursor, 1, Square.BLANK);
       setLetters([...letters]);
     }
 
     if (e.code === "Minus" || e.code === 'Escape') {
-      const letter = letters[cursor] === "-" ? "_" : "-";
+      const letter = isBlock(letters[cursor]) ? Square.BLANK : Square.BLOCK;
       letters.splice(cursor, 1, letter);
-      if (e.ctrlKey || rotate) {
+      if (e.ctrlKey || (mode === 'rotate')) {
         letters.splice(letters.length - cursor - 1, 1, letter);
       }
-      if (e.altKey || mirror) {
+      if (e.altKey || (mode === 'mirror')) {
         letters.splice(
           (Math.floor(cursor / size) + 1) * size - (cursor % size) - 1,
           1,
@@ -58,17 +39,6 @@ export const useLetterController = (size: number) => {
       letters.splice(cursor, 1, letter);
       setLetters([...letters]);
     }
-
-    switch (e.key) {
-      case "ArrowUp":
-        return moveCursorUp();
-      case "ArrowDown":
-        return moveCursorDown();
-      case "ArrowRight":
-        return moveCursorRight();
-      case "ArrowLeft":
-        return moveCursorLeft();
-    }
   };
 
   useEffect(() => {
@@ -76,18 +46,5 @@ export const useLetterController = (size: number) => {
     return () => window.removeEventListener("keydown", handleKeyDown);
   });
 
-  const handleClick = (i: number) => {
-    if (isBlock(letters[i])) {
-      letters.splice(i, 1, "");
-      setLetters([...letters]);
-    }
-
-    setCursor(i);
-  };
-
-  return {
-    letters,
-    cursor,
-    handleClick,
-  };
+  return letters;
 }
