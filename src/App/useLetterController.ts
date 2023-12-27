@@ -2,14 +2,37 @@ import { useEffect, useState } from "react";
 import { useControls } from "leva";
 import { Letters, Square } from "./types";
 import { isBlock } from "../utils";
+import { isArray, isString } from "lodash";
+
+const getLetters = (size: number) => {
+  const defaultLetters = new Array<string>(size * size).fill(Square.BLANK);
+  const rawLetters = localStorage.getItem(`letters:${size}`);
+  if (!rawLetters) return defaultLetters;
+  try {
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+    const letters = JSON.parse(rawLetters);
+    if (isArray(letters)) {
+      if (letters.every(isString)) {
+        return letters;
+      }
+    }
+    console.warn("Found something other than an array of strings in 'letters' in localStorage");
+    return defaultLetters;
+  } catch (err) {
+    console.warn("Error parsing json from 'letters' from localStorage");
+    return defaultLetters;
+  }
+}
 
 
 export const useLetterController = (size: number, cursor: number) => {
-  const { mode } = useControls({ mode: { value: '------', options: ['------', 'mirror', 'rotate'] }});
+  const { mode } = useControls({ mode: { value: 'rotate', options: ['rotate', 'mirror', '------'] }});
 
-  const [letters, setLetters] = useState<Letters>(
-    new Array(size * size).fill(Square.BLANK)
-  );
+  const [letters, setLetters] = useState<Letters>(getLetters(size));
+
+  useEffect(() => {
+    localStorage.setItem(`letters:${size}`, JSON.stringify(letters));
+  }, [letters, size])
 
   const handleKeyDown = (e: KeyboardEvent) => {
     if (e.key === "Backspace") {
