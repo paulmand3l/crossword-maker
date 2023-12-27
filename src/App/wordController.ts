@@ -1,4 +1,4 @@
-import { join, orderBy } from "lodash";
+import { orderBy } from "lodash";
 import { addAll, getSquareSize, gridify, isBlock, transpose, transposeArray } from "../utils";
 import { Letters, Numbers, Rectangle, UnorientedWord, Word } from "./types";
 
@@ -138,7 +138,6 @@ const getRectFlags = (letters: Letters, options: FlagsOptions = {}) => {
   const flags = [...letters].map(() => new Set<string>());
 
   oversizedRectangles.forEach(({ index, width, height }) => {
-    console.log(index, width, height);
     for (let i = 0; i < height; i++) {
       for (let j = 0; j < width; j++) {
         flags[index + i * letterGrid.length + j].add('rect');
@@ -167,7 +166,6 @@ const getFlags = (
     if (word.word.length <= minWordLength) {
       console.warn("short word", word);
       for (let i = 0; i < word.word.length; i++) {
-        console.log(word.index + i, word.word.length);
         flags[word.index + i].add("short");
       }
     }
@@ -180,13 +178,10 @@ const getFlags = (
     if (word.word.length < 3) {
       console.warn("short word", word);
       for (let i = 0; i < word.word.length; i++) {
-        console.log(word.index + i, word.word.length);
         transposedFlags[word.index + i].add("short");
       }
     }
   });
-
-  console.log(flags);
 
   return transposeArray(transposedFlags, size);
 };
