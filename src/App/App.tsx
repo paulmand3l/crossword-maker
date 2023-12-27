@@ -3,32 +3,40 @@ import Grid from "../components/Square/Grid";
 import { useLetterController } from "./useLetterController";
 import { getWordNumbers, getWords } from "./wordController";
 import { useCursorController } from "./useCursorController";
-import { Words } from "./types";
+import { Annotations } from "./types";
 import { useEffect, useState } from "react";
+import { solve } from "./solver";
+import { isInteger } from "lodash";
+
+const getSize = () => {
+  const urlParams = new URLSearchParams(window.location.search);
+  const size = parseInt(urlParams.get('size') ?? '15');
+  return isInteger(size) ? size : 15;
+}
 
 const App = () => {
-  const size = 15;
+  const size = getSize();
 
   const { cursor, handleClick } = useCursorController(size);
   const letters = useLetterController(size, cursor);
 
-  const [words, setWords] = useState<Words>();
+  const [annotations, setAnnotations] = useState<Annotations>();
 
   useEffect(() => {
     const numbers = getWordNumbers(letters);
     const { across, down, flags } = getWords(letters, numbers);
-    console.log(across, down);
-    setWords({ across, down, flags, numbers });
-  }, [letters]);
+    setAnnotations({ flags, numbers });
+    solve(size, across, down);
+  }, [size, letters]);
 
-  if (!words) return null;
+  if (!annotations) return null;
 
   return (
     <div className={styles.App}>
       <Grid
         letters={letters}
-        numbers={words?.numbers}
-        flags={words?.flags}
+        numbers={annotations.numbers}
+        flags={annotations.flags}
         cursor={cursor}
         onClick={handleClick}
       />
